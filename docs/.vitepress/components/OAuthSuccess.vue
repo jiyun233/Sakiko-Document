@@ -14,9 +14,9 @@ import { defineComponent, onMounted } from 'vue';
 export default defineComponent({
   name: 'OAuthSuccess',
   setup() {
-    // 组合式 API: onMounted 用于页面加载时执行代码
     onMounted(() => {
-    return {};
+      return {};
+    })
   }
 });
 </script>

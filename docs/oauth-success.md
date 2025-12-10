@@ -1,3 +1,5 @@
-# 绑定成功 | ティピイTippy Bot
+---
+title: 绑定成功
+---
 
 <OAuthSuccess />
