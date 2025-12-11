@@ -3,4 +3,4 @@ title: 绑定成功
 ---
 
 <!--suppress CheckEmptyScriptTag, HtmlUnknownTag -->
-<OAuthSuccessComponent />
+<BindComponent />

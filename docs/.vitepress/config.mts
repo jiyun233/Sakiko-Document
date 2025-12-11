@@ -4,8 +4,6 @@ import {defineConfig} from 'vitepress'
 export default defineConfig({
     title: "Sakiko-ChuniBot",
     description: "A QQ bot for the rhythm game Chunithm",
-    lastUpdated: true,
-    base: "/",
     themeConfig: {
         // https://vitepress.dev/reference/default-theme-config
         nav: [
@@ -36,14 +34,6 @@ export default defineConfig({
         footer: {
             message: 'Released under the MIT License.',
             copyright: 'Copyright © 2021-present Origin Technology'
-        },
-
-        lastUpdated: {
-            text: '最后更新于',
-            formatOptions: {
-                dateStyle: 'full',
-                timeStyle: 'medium'
-            }
         },
 
         search: {
