@@ -4,7 +4,6 @@ import {computed, ref} from 'vue';
 const qq = ref('');
 const touched = ref(false);
 
-// QQ 正则：5–11 位数字，不以 0 开头
 const qqRegex = /^[1-9][0-9]{4,10}$/;
 
 const isValid = computed(() => qqRegex.test(qq.value));
@@ -39,6 +38,7 @@ function onCancel() {
 <template>
   <div class="bind-wrapper" role="dialog" aria-modal="true" aria-label="输入 QQ 绑定">
     <div class="content">
+      <img src="../../public/icon.png"  alt="Sakiko-ChuniBot" class="icon" />
       <h2>绑定 QQ 账号</h2>
 
       <label class="input-wrap" for="qq-input">
@@ -47,7 +47,7 @@ function onCancel() {
             v-model="qq"
             type="text"
             inputmode="numeric"
-            placeholder="请输入 QQ 号（例如 123456）"
+            placeholder="请输入 QQ 号（例 123456）"
             @blur="touched = true"
             @keyup.enter="onConfirm"
             aria-invalid="!isValid"
@@ -68,13 +68,9 @@ function onCancel() {
 </template>
 
 <style scoped>
-/* 保持你原有的全屏居中外层 */
 .bind-wrapper {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  padding: 40px 0;
 
   display: flex;
   align-items: center;
@@ -82,8 +78,6 @@ function onCancel() {
 
   text-align: center;
   box-sizing: border-box;
-  overflow: hidden;
-  background: rgba(0, 0, 0, 0.25); /* 可选：半透明遮罩 */
 }
 
 /* 内容卡片样式 */
@@ -96,20 +90,18 @@ function onCancel() {
   flex-direction: column;
   align-items: center;
 
-  background: #1f1f1f; /* 深色主题卡片 */
+  background: #1f1f1f;
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   color: #fff;
 }
 
-/* 标题 */
 .content h2 {
   margin: 0 0 16px;
-  font-size: 20px;
+  font-size: 26px;
   font-weight: 600;
 }
 
-/* 输入 */
 .input-wrap {
   width: 100%;
   margin-bottom: 8px;
@@ -132,7 +124,6 @@ function onCancel() {
   box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.08);
 }
 
-/* 错误提示 */
 .error {
   color: #ff9b9b;
   font-size: 13px;
@@ -140,14 +131,12 @@ function onCancel() {
   min-height: 18px;
 }
 
-/* 按钮行 */
 .btn-row {
   display: flex;
   gap: 12px;
   margin-top: 8px;
 }
 
-/* 基础按钮 */
 .btn {
   padding: 8px 18px;
   border-radius: 8px;
@@ -156,7 +145,6 @@ function onCancel() {
   cursor: pointer;
 }
 
-/* 确认按钮 */
 .btn-confirm {
   background: linear-gradient(180deg, #43d17a, #2fb564);
   color: #fff;
@@ -170,10 +158,15 @@ function onCancel() {
   box-shadow: none;
 }
 
-/* 取消按钮 */
 .btn-cancel {
   background: transparent;
   color: #ddd;
   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+
+.icon {
+  width: 120px;
+  max-width: 90vw;
 }
 </style>
