@@ -1,5 +1,6 @@
 <script setup>
 import {computed, ref} from 'vue';
+import {redirectUri} from "../global";
 
 const qq = ref('');
 const touched = ref(false);
@@ -22,7 +23,7 @@ function onConfirm() {
   const params = new URLSearchParams({
     response_type: "code",
     client_id: "c01a9455-1bd5-4d4a-bf23-79ee1a684b33",
-    redirect_uri: "http://localhost:5173/auth",
+    redirect_uri: redirectUri,
     scope: "read_user_profile read_player read_user_token",
     state: qq.value
   });
