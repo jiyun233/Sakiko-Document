@@ -19,7 +19,6 @@
   </div>
 </template>
 
-
 <script lang="ts">
 import {defineComponent, ref, onMounted, computed} from 'vue';
 import SuccessBadge from '../icons/SuccessBadge.vue';
@@ -38,20 +37,26 @@ function isValidQQ(q: string): boolean {
   return /^[1-9][0-9]{4,10}$/.test(q);
 }
 
-async function postOAuth(code: string, state: number) {
+/** 后端规范返回:
+ * { success: true }
+ * { success: false, reason: "token_failed" }
+ */
+async function postOAuth(code: string, state: number): Promise<{ success: boolean, reason?: string }> {
   try {
     const resp = await fetch(`${baseURL}/api/oauth`, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({code, state})
     });
-    if (!resp.ok) return false;
 
-    const data = await resp.json();
-    return data.success === true;
+    if (!resp.ok) {
+      return {success: false, reason: "network_error"};
+    }
+
+    return await resp.json();
   } catch (err) {
     console.error("Backend error:", err);
-    return false;
+    return {success: false, reason: "network_exception"};
   }
 }
 
@@ -62,6 +67,15 @@ export default defineComponent({
   setup() {
     const isLoading = ref(true);
     const isSuccess = ref(false);
+    const failReason = ref("");
+
+    const reasonMsgs: Record<string, string> = {
+      "token_failed": "无法获取访问令牌，请重新尝试。",
+      "token_fetch_failed": "获取 API 密钥失败，请稍后再试。",
+      "network_error": "网络异常，请检查您的网络连接。",
+      "network_exception": "后端服务不可用，请稍后再试。",
+      "invalid_params": "参数错误，请重新尝试 OAuth 授权。",
+    };
 
     const currentBadge = computed(() => {
       if (isLoading.value) return "LoadingBadge";
@@ -75,9 +89,11 @@ export default defineComponent({
 
     const descText = computed(() => {
       if (isLoading.value) return "正在验证您的授权信息，请稍候…";
-      return isSuccess.value
-          ? "授权成功，可以关闭此页面或等待自动跳转…"
-          : "授权参数无效或验证失败，请重新尝试。";
+
+      if (isSuccess.value)
+        return "授权成功，可以关闭此页面或等待自动跳转…";
+
+      return reasonMsgs[failReason.value] || "授权失败，请重新尝试。";
     });
 
     onMounted(async () => {
@@ -88,24 +104,29 @@ export default defineComponent({
       if (!code || !state || !isValidQQ(state)) {
         isLoading.value = false;
         isSuccess.value = false;
+        failReason.value = "invalid_params";
         return;
       }
 
-      const authPass = await postOAuth(code, parseInt(state));
+      const resp = await postOAuth(code, parseInt(state));
 
-      isSuccess.value = authPass;
+      isSuccess.value = resp.success;
       isLoading.value = false;
 
-      if (authPass) {
-        setTimeout(() => {
-          window.location.href = "/";
-        }, 1000);
+      if (!resp.success) {
+        failReason.value = resp.reason || "unknown";
+        return;
       }
+
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 10000);
     });
 
     return {
       isLoading,
       isSuccess,
+      failReason,
       currentBadge,
       titleText,
       descText

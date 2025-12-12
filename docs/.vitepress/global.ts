@@ -1,3 +1,3 @@
-const isDebugMode = true
+const isDebugMode = false
 
-export const baseURL = isDebugMode ? 'https://oauth.30988801548857.workers.dev' : 'https://c.mic.run:57928'
+export const baseURL = isDebugMode ? 'https://localhost:9527' : 'https://chunithm.origin.pw'

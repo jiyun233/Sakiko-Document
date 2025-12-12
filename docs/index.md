@@ -14,6 +14,9 @@ hero:
     - theme: alt
       text: 立即试用
       link: "https://qm.qq.com/q/F7vKXtdjig"
+    - theme: alt
+      text: 绑定用户
+      link: "/bind"
 
 features:
   - title: 成绩图片生成

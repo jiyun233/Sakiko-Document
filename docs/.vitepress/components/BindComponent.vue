@@ -22,7 +22,7 @@ function onConfirm() {
   const params = new URLSearchParams({
     response_type: "code",
     client_id: "c01a9455-1bd5-4d4a-bf23-79ee1a684b33",
-    redirect_uri: "https://chunithm.mic.run/auth",
+    redirect_uri: "http://localhost:5173/auth",
     scope: "read_user_profile read_player read_user_token",
     state: qq.value
   });
