@@ -71,7 +71,8 @@ export default defineComponent({
 
     const reasonMsgs: Record<string, string> = {
       "token_failed": "无法获取访问令牌，请重新尝试。",
-      "token_fetch_failed": "获取 API 密钥失败，请稍后再试。",
+      "token_fetch_failed": "获取 API 密钥失败，请前往落雪查分器 -> 账号详情 -> 第三方应用 生成个人 API 密钥。",
+      "no_friend_code": "获取好友码失败，请确认自己游玩中二节奏2026，并同步了最新的数据",
       "network_error": "网络异常，请检查您的网络连接。",
       "network_exception": "后端服务不可用，请稍后再试。",
       "invalid_params": "参数错误，请重新尝试 OAuth 授权。",
