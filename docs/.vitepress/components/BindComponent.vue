@@ -65,7 +65,7 @@ function onCancel() {
         <label class="agree-label">
           <input type="checkbox" v-model="agree"/>
           我已阅读并同意
-          <a href="https://chunithm.mic.run/term/terms.html" target="_blank" rel="noopener noreferrer">用户数据授权条款</a>
+          <a href="/term/terms.html" target="_blank" rel="noopener noreferrer">用户数据授权条款</a>
         </label>
       </div>
 
