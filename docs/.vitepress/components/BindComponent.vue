@@ -4,15 +4,18 @@ import {redirectUri} from "../global";
 
 const qq = ref('');
 const touched = ref(false);
+const agree = ref(false);
 
 const qqRegex = /^[1-9][0-9]{4,10}$/;
 
-const isValid = computed(() => qqRegex.test(qq.value));
+const isValid = computed(() => qqRegex.test(qq.value) && agree.value);
 const errorMessage = computed(() => {
   if (!touched.value) return '';
   if (qq.value === '') return '请输入 QQ 号';
   if (!/^[0-9]*$/.test(qq.value)) return '只能输入数字';
-  return isValid.value ? '' : 'QQ号格式错误';
+  if (!qqRegex.test(qq.value)) return 'QQ号格式错误';
+  if (!agree.value) return '请同意用户数据授权条款';
+  return '';
 });
 
 function onConfirm() {
@@ -24,7 +27,7 @@ function onConfirm() {
     response_type: "code",
     client_id: "c01a9455-1bd5-4d4a-bf23-79ee1a684b33",
     redirect_uri: redirectUri,
-    scope: "read_user_profile read_player read_user_token",
+    scope: "read_user_profile read_player",
     state: qq.value
   });
 
@@ -39,7 +42,7 @@ function onCancel() {
 <template>
   <div class="bind-wrapper" role="dialog" aria-modal="true" aria-label="输入 QQ 绑定">
     <div class="content">
-      <img src="../../public/icon.png"  alt="Sakiko-ChuniBot" class="icon" />
+      <img src="../../public/icon.png" alt="Sakiko-ChuniBot" class="icon"/>
       <h2>绑定 QQ 账号</h2>
 
       <label class="input-wrap" for="qq-input">
@@ -57,6 +60,14 @@ function onCancel() {
       </label>
 
       <p class="error" v-if="errorMessage">{{ errorMessage }}</p>
+
+      <div class="agree-wrap">
+        <label class="agree-label">
+          <input type="checkbox" v-model="agree"/>
+          我已阅读并同意
+          <a href="/term/terms" target="_blank" rel="noopener noreferrer">用户数据授权条款</a>
+        </label>
+      </div>
 
       <div class="btn-row">
         <button class="btn btn-confirm" :disabled="!isValid" @click="onConfirm" aria-disabled="!isValid">
@@ -130,6 +141,26 @@ function onCancel() {
   font-size: 13px;
   margin: 6px 0 12px;
   min-height: 18px;
+}
+
+.agree-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center; /* 居中复选框 */
+  margin-bottom: 16px;
+}
+
+.agree-label {
+  font-size: 13px;
+  color: #ddd;
+  display: flex;
+  align-items: center;
+  gap: 6px; /* 复选框与文字间距 */
+}
+
+.agree-label a {
+  color: #43d17a;
+  text-decoration: underline;
 }
 
 .btn-row {
