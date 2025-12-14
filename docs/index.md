@@ -15,7 +15,7 @@ hero:
       text: 立即试用
       link: "https://qm.qq.com/q/F7vKXtdjig"
     - theme: alt
-      text: 绑定用户
+      text: 绑定落雪
       link: "/bind"
 
 features:

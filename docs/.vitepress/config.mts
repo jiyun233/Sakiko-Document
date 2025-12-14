@@ -8,7 +8,8 @@ export default defineConfig({
         // https://vitepress.dev/reference/default-theme-config
         nav: [
             {text: "首页", link: "/"},
-            {text: "使用指南", link: "/guide/account"}
+            {text: "使用指南", link: "/guide/account"},
+            {text: "使用条款", link: "/term/terms"}
         ],
 
         sidebar: {
@@ -23,6 +24,15 @@ export default defineConfig({
                         {text: "牌子进度", link: "/guide/progress"},
                         {text: "成绩工具", link: "/guide/tools"},
                         {text: "其它功能", link: "/guide/misc"}
+                    ]
+                }
+            ],
+            "/term/": [
+                {
+                    text: "使用条款",
+                    collapsed: false,
+                    items: [
+                        {text: "使用条款", link: "/term/terms"}
                     ]
                 }
             ]

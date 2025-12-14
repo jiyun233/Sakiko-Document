@@ -1,5 +1,5 @@
 ---
-title: 绑定成功
+title: OAuth验证
 ---
 
 <!--suppress CheckEmptyScriptTag, HtmlUnknownTag -->
