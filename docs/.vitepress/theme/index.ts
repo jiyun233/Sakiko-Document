@@ -15,7 +15,7 @@ export default {
     enhanceApp({app, router, siteData}) {
         // Initialize Vercel Web Analytics
         inject()
-        
+
         app.component('OAuthSuccessComponent', OAuthSuccessComponent)
         app.component('BindComponent', BindComponent)
     }
