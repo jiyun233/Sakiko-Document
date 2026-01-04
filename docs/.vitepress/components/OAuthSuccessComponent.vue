@@ -2,40 +2,9 @@
   <div class="success-wrapper">
 
     <div class="content">
-      <!-- 非成功绑定，仍然显示原来的 Badge 页面 -->
-      <template v-if="!showLottery">
         <component :is="currentBadge" class="badge" :size="220" />
-
         <h1>{{ titleText }}</h1>
         <p class="desc">{{ descText }}</p>
-      </template>
-
-
-    </div>
-    <!-- 成功绑定：显示抽奖弹窗 -->
-    <div v-if="showLottery" class="modal-mask">
-      <div class="modal lottery">
-        <h1 class="modal-title">🎉 OAuth 授权成功</h1>
-        <h2 class="modal-title">填写收集表参与抽奖!</h2>
-        <img class="modal-img" src="/lotter.png" alt="抽奖二维码" />
-
-        <p class="modal-desc">
-          需填写收集表才可抽奖否则中将无效!
-        </p>
-        <p class="modal-desc">
-          点击链接即可跳转至抽奖!
-        </p>
-
-        <div class="modal-actions">
-          <button class="action-btn secondary" @click="saveImage">
-            保存抽奖二维码
-          </button>
-
-          <a class="action-btn primary" href="https://wj.qq.com/s2/25085118/5879/" target="_blank" rel="noopener">
-            立即填写 · 参与抽奖
-          </a>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -47,14 +16,7 @@ import ErrorBadge from '../icons/ErrorBadge.vue';
 import LoadingBadge from '../icons/LoadingBadge.vue';
 import { baseURL } from "../global";
 
-const showLottery = ref(false);
 
-function saveImage() {
-  const link = document.createElement("a");
-  link.href = "/lotter.png";
-  link.download = "抽奖二维码.png";
-  link.click();
-}
 function getAllParams(): Record<string, string> {
   const res: Record<string, string> = {};
   const searchParams = new URLSearchParams(window.location.search);
@@ -140,8 +102,6 @@ export default defineComponent({
         failReason.value = resp.reason || "unknown";
         return;
       }
-
-      showLottery.value = true;
     });
 
     return {
@@ -151,8 +111,6 @@ export default defineComponent({
       currentBadge,
       titleText,
       descText,
-      showLottery,
-      saveImage
     };
   },
 });
@@ -210,28 +168,6 @@ h1 {
   animation-delay: 0.35s;
 }
 
-.action-btn {
-  width: 100%;
-  max-width: 260px;
-  padding: 12px 0;
-  font-size: 16px;
-  border-radius: 10px;
-  text-align: center;
-  cursor: pointer;
-  text-decoration: none;
-  transition: 0.2s;
-}
-
-.action-btn.primary {
-  background: #4CAF50;
-  color: #fff;
-}
-
-.action-btn.secondary {
-  background: #f3f3f3;
-  color: #333;
-}
-
 
 @keyframes popIn {
   0% {
@@ -255,44 +191,5 @@ h1 {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.modal.lottery {
-  width: 340px;
-  padding: 22px;
-}
-
-.modal-title {
-  font-size: 32px;
-  font-weight: 600;
-  margin-bottom: 14px;
-}
-
-.modal-img {
-  width: 220px;
-  margin: 0 auto;
-  border-radius: 10px;
-}
-
-.modal-desc {
-  margin-top: 12px;
-  font-size: 14px;
-  color: #666;
-  line-height: 1.5;
-}
-
-.modal-tip {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #999;
-}
-
-.modal-actions {
-  width: 100%;
-  margin-top: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: center;
 }
 </style>
