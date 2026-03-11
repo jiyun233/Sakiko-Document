@@ -6,6 +6,12 @@ const qq = ref('');
 const touched = ref(false);
 const agree = ref(false);
 
+// Dialog state
+const showDialog = ref(false);
+const qqInfo = ref(null);
+const loadingInfo = ref(false);
+const fetchError = ref('');
+
 const qqRegex = /^[1-9][0-9]{4,10}$/;
 
 const isValid = computed(() => qqRegex.test(qq.value) && agree.value);
@@ -18,11 +24,30 @@ const errorMessage = computed(() => {
   return '';
 });
 
-function onConfirm() {
+async function onConfirm() {
   touched.value = true;
   if (!isValid.value) return;
-  const base = "https://maimai.lxns.net/oauth/authorize";
 
+  // Fetch QQ info and show dialog
+  loadingInfo.value = true;
+  fetchError.value = '';
+  qqInfo.value = null;
+  showDialog.value = true;
+
+  try {
+    const res = await fetch(`https://uapis.cn/api/v1/social/qq/userinfo?qq=${qq.value}`);
+    const data = await res.json();
+    qqInfo.value = data;
+  } catch (e) {
+    fetchError.value = '获取 QQ 信息失败，请检查网络后重试';
+  } finally {
+    loadingInfo.value = false;
+  }
+}
+
+function onDialogConfirm() {
+  showDialog.value = false;
+  const base = "https://maimai.lxns.net/oauth/authorize";
   const params = new URLSearchParams({
     response_type: "code",
     client_id: "c01a9455-1bd5-4d4a-bf23-79ee1a684b33",
@@ -30,12 +55,21 @@ function onConfirm() {
     scope: "read_user_profile read_player",
     state: qq.value
   });
-
   window.location.href = `${base}?${params.toString()}`;
+}
+
+function onDialogCancel() {
+  showDialog.value = false;
+  qqInfo.value = null;
 }
 
 function onCancel() {
   window.history.back();
+}
+
+function formatRegTime(iso) {
+  if (!iso) return '未知';
+  return new Date(iso).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 </script>
 
@@ -81,7 +115,6 @@ function onCancel() {
         <div class="flow-label">绑定流程</div>
 
         <div class="flow-steps">
-          <!-- Step 1: 本站 -->
           <div class="step step-origin">
             <div class="step-icon">
               <img src="../../public/icon.png" alt="Sakiko-ChuniBot" class="site-logo" />
@@ -89,7 +122,6 @@ function onCancel() {
             <span class="step-name">本站</span>
           </div>
 
-          <!-- Arrow 1 -->
           <div class="arrow-wrap">
             <span class="arrow-label-top">跳转授权</span>
             <div class="arrow-body">
@@ -103,7 +135,6 @@ function onCancel() {
             </div>
           </div>
 
-          <!-- Step 2: 落雪查分器 -->
           <div class="step step-ext">
             <div class="step-icon step-icon-ext">
               <img src="../../public/lxns.webp" alt="LXNS" class="site-logo" />
@@ -112,7 +143,6 @@ function onCancel() {
             <span class="step-sub">maimai.lxns.net</span>
           </div>
 
-          <!-- Arrow 2 -->
           <div class="arrow-wrap">
             <span class="arrow-label-top">自动回跳</span>
             <div class="arrow-body">
@@ -126,7 +156,6 @@ function onCancel() {
             </div>
           </div>
 
-          <!-- Step 3: 绑定成功 -->
           <div class="step step-done">
             <div class="step-icon step-icon-done">
               <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="done-badge">
@@ -146,7 +175,6 @@ function onCancel() {
           </div>
         </div>
 
-        <!-- 强调提示条 -->
         <div class="hint-important">
           <svg class="note-icon-warn" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M8 1.5L14.5 13H1.5L8 1.5Z" stroke="#f5c542" stroke-width="1.4" stroke-linejoin="round"/>
@@ -156,7 +184,6 @@ function onCancel() {
           <span>点击「确认」后将跳转至落雪查分器进行授权，<strong>必须完成授权并自动跳转回本页</strong>才算绑定成功</span>
         </div>
 
-        <!-- 次要备注 -->
         <p class="hint-note">
           <svg class="note-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="8" cy="8" r="7" stroke="#43d17a" stroke-width="1.4" opacity="0.7"/>
@@ -166,12 +193,105 @@ function onCancel() {
           若未自动跳转回本站，请重新打开本页面再次尝试绑定
         </p>
       </div>
-
     </div>
   </div>
+
+  <!-- ✦ QQ 身份确认弹窗 ✦ -->
+  <Teleport to="body">
+    <Transition name="overlay-fade">
+      <div v-if="showDialog" class="dialog-overlay" @click.self="onDialogCancel">
+        <Transition name="dialog-pop">
+          <div class="dialog-box" role="dialog" aria-modal="true" aria-label="确认 QQ 身份">
+
+            <!-- Loading state -->
+            <div v-if="loadingInfo" class="dialog-loading">
+              <div class="spinner"></div>
+              <span>正在获取 QQ 信息…</span>
+            </div>
+
+            <!-- Error state -->
+            <div v-else-if="fetchError" class="dialog-error-state">
+              <svg viewBox="0 0 24 24" fill="none" class="err-icon">
+                <circle cx="12" cy="12" r="10" stroke="#ff9b9b" stroke-width="1.5"/>
+                <path d="M12 7v5" stroke="#ff9b9b" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="12" cy="16" r="1" fill="#ff9b9b"/>
+              </svg>
+              <p class="err-text">{{ fetchError }}</p>
+              <button class="btn btn-cancel dialog-close-btn" @click="onDialogCancel">关闭</button>
+            </div>
+
+            <!-- Info state -->
+            <template v-else-if="qqInfo">
+              <div class="dialog-header">
+                <span class="dialog-title">确认 QQ 身份</span>
+              </div>
+
+              <!-- QQ profile card -->
+              <div class="qq-card">
+                <img :src="qqInfo.avatar_url" :alt="qqInfo.nickname" class="qq-avatar" referrerpolicy="no-referrer"/>
+                <div class="qq-main">
+                  <div class="qq-name-row">
+                    <span class="qq-nickname">{{ qqInfo.nickname }}</span>
+                    <span v-if="qqInfo.qid" class="qq-qid">{{ qqInfo.qid }}</span>
+                  </div>
+                  <div class="qq-meta-row">
+                    <span class="qq-number">QQ: {{ qqInfo.qq }}</span>
+                    <span v-if="qqInfo.location" class="qq-location">
+                      <svg viewBox="0 0 12 12" fill="none" class="loc-icon">
+                        <path d="M6 1a3.5 3.5 0 0 1 3.5 3.5C9.5 7 6 11 6 11S2.5 7 2.5 4.5A3.5 3.5 0 0 1 6 1z" stroke="currentColor" stroke-width="1.1"/>
+                        <circle cx="6" cy="4.5" r="1.2" stroke="currentColor" stroke-width="1"/>
+                      </svg>
+                      {{ qqInfo.location }}
+                    </span>
+                  </div>
+                  <div v-if="qqInfo.long_nick" class="qq-sign">{{ qqInfo.long_nick }}</div>
+                </div>
+              </div>
+
+              <!-- Extra info pills -->
+              <div class="info-pills">
+                <span class="pill" v-if="qqInfo.sex && qqInfo.sex !== 'unknown'">
+                  {{ qqInfo.sex === 'female' ? '♀ 女' : '♂ 男' }}
+                </span>
+                <span class="pill" v-if="qqInfo.age">{{ qqInfo.age }} 岁</span>
+                <span class="pill" v-if="qqInfo.qq_level">Lv.{{ qqInfo.qq_level }}</span>
+              </div>
+
+              <!-- Confirm question -->
+              <div class="dialog-question">
+                <svg viewBox="0 0 16 16" fill="none" class="q-icon">
+                  <circle cx="8" cy="8" r="7" stroke="#43d17a" stroke-width="1.3" opacity="0.8"/>
+                  <path d="M8 7v4" stroke="#43d17a" stroke-width="1.6" stroke-linecap="round"/>
+                  <circle cx="8" cy="5" r="0.8" fill="#43d17a"/>
+                </svg>
+                以上是否为您本人的 QQ 账号？
+              </div>
+
+              <!-- Warning -->
+              <div class="dialog-warn">
+                <svg viewBox="0 0 16 16" fill="none" class="warn-icon">
+                  <path d="M8 1.5L14.5 13H1.5L8 1.5Z" stroke="#f5c542" stroke-width="1.4" stroke-linejoin="round"/>
+                  <path d="M8 6v3.5" stroke="#f5c542" stroke-width="1.5" stroke-linecap="round"/>
+                  <circle cx="8" cy="11.2" r="0.75" fill="#f5c542"/>
+                </svg>
+                <span>若发现<strong>恶意绑定他人账号</strong>，将会<strong>永久禁止</strong>使用本 Bot 的全部功能</span>
+              </div>
+
+              <div class="dialog-btn-row">
+                <button class="btn btn-confirm" @click="onDialogConfirm">是，继续绑定</button>
+                <button class="btn btn-cancel" @click="onDialogCancel">不是，重新输入</button>
+              </div>
+            </template>
+
+          </div>
+        </Transition>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <style scoped>
+/* ── 原有样式保持不变 ── */
 .bind-wrapper {
   width: 100%;
   padding: 40px 0;
@@ -289,9 +409,6 @@ function onCancel() {
   max-width: 90vw;
 }
 
-/* ════════════════════════════
-   绑定流程提示
-════════════════════════════ */
 .flow-hint {
   width: 100%;
   margin-top: 20px;
@@ -320,7 +437,6 @@ function onCancel() {
   white-space: nowrap;
 }
 
-/* ── 步骤行 ── */
 .flow-steps {
   display: flex;
   align-items: flex-start;
@@ -329,7 +445,6 @@ function onCancel() {
   flex-wrap: nowrap;
 }
 
-/* ── 单个步骤 ── */
 .step {
   display: flex;
   flex-direction: column;
@@ -396,9 +511,6 @@ function onCancel() {
   margin-top: -4px;
 }
 
-/* ════════════════════════════
-   CSS-only 流动箭头（纯 DOM，无 SVG 动画）
-════════════════════════════ */
 .arrow-wrap {
   display: flex;
   flex-direction: column;
@@ -406,7 +518,6 @@ function onCancel() {
   gap: 4px;
   padding: 0 4px;
   flex-shrink: 0;
-  /* align with icon center */
   margin-top: 9px;
 }
 
@@ -466,9 +577,6 @@ function onCancel() {
   50%       { opacity: 1;   transform: translateX(2px); }
 }
 
-/* ════════════════════════════
-   强调提示条（黄色警告）
-════════════════════════════ */
 .hint-important {
   display: flex;
   align-items: flex-start;
@@ -495,7 +603,6 @@ function onCancel() {
   margin-top: 1px;
 }
 
-/* ── 次要备注 ── */
 .hint-note {
   display: flex;
   align-items: flex-start;
@@ -512,5 +619,277 @@ function onCancel() {
   height: 13px;
   flex-shrink: 0;
   margin-top: 1px;
+}
+
+/* ════════════════════════════
+   弹窗样式
+════════════════════════════ */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.dialog-box {
+  width: 400px;
+  max-width: 92vw;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(67, 209, 122, 0.08);
+  color: #fff;
+  box-sizing: border-box;
+}
+
+/* ── Loading ── */
+.dialog-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 0;
+  color: rgba(255,255,255,0.55);
+  font-size: 14px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(67, 209, 122, 0.15);
+  border-top-color: #43d17a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Error ── */
+.dialog-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 0 8px;
+}
+
+.err-icon {
+  width: 40px;
+  height: 40px;
+}
+
+.err-text {
+  font-size: 13px;
+  color: rgba(255, 155, 155, 0.9);
+  text-align: center;
+  margin: 0;
+}
+
+.dialog-close-btn {
+  margin-top: 4px;
+}
+
+/* ── Header ── */
+.dialog-header {
+  margin-bottom: 16px;
+}
+
+.dialog-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+/* ── QQ Card ── */
+.qq-card {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.qq-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid rgba(67, 209, 122, 0.25);
+}
+
+.qq-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.qq-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.qq-nickname {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.qq-qid {
+  font-size: 11px;
+  color: #43d17a;
+  background: rgba(67, 209, 122, 0.1);
+  border: 1px solid rgba(67, 209, 122, 0.2);
+  padding: 1px 7px;
+  border-radius: 20px;
+}
+
+.qq-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.qq-number {
+  font-size: 12px;
+  color: rgba(255,255,255,0.45);
+  font-family: monospace;
+}
+
+.qq-location {
+  font-size: 11px;
+  color: rgba(255,255,255,0.38);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.loc-icon {
+  width: 10px;
+  height: 10px;
+  color: rgba(255,255,255,0.3);
+}
+
+.qq-sign {
+  font-size: 12px;
+  color: rgba(255,255,255,0.35);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+/* ── Info pills ── */
+.info-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.pill {
+  font-size: 11px;
+  padding: 2px 9px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.5);
+}
+
+
+/* ── Question ── */
+.dialog-question {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.82);
+  margin-bottom: 12px;
+}
+
+.q-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ── Warning ── */
+.dialog-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 9px 11px;
+  background: rgba(245, 197, 66, 0.06);
+  border: 1px solid rgba(245, 197, 66, 0.22);
+  border-radius: 8px;
+  font-size: 12px;
+  color: rgba(255, 240, 180, 0.78);
+  line-height: 1.6;
+  margin-bottom: 18px;
+}
+
+.dialog-warn strong {
+  color: #f5d76e;
+}
+
+.warn-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ── Dialog buttons ── */
+.dialog-btn-row {
+  display: flex;
+  gap: 10px;
+}
+
+.dialog-btn-row .btn {
+  flex: 1;
+  font-size: 13px;
+}
+
+/* ── Transitions ── */
+.overlay-fade-enter-active,
+.overlay-fade-leave-active {
+  transition: opacity 0.22s ease;
+}
+.overlay-fade-enter-from,
+.overlay-fade-leave-to {
+  opacity: 0;
+}
+
+.dialog-pop-enter-active {
+  transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.dialog-pop-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.dialog-pop-enter-from {
+  opacity: 0;
+  transform: scale(0.88) translateY(10px);
+}
+.dialog-pop-leave-to {
+  opacity: 0;
+  transform: scale(0.94) translateY(4px);
 }
 </style>
