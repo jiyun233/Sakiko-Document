@@ -41,10 +41,6 @@ export default defineConfig({
         socialLinks: [
             {icon: 'github', link: 'https://github.com/jiyun233'}
         ],
-        footer: {
-            message: 'Released under the MIT License.',
-            copyright: 'Copyright © 2021-present Origin Technology'
-        },
 
         search: {
             provider: 'local'
