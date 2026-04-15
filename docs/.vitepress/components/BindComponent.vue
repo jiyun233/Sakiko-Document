@@ -1,6 +1,6 @@
-<script setup>
-import {computed, ref} from 'vue';
-import {redirectUri} from "../global";
+<script setup lang="ts">
+import { computed, ref } from 'vue';
+import { redirectUri } from "../global";
 
 const qq = ref('');
 const touched = ref(false);
@@ -8,9 +8,6 @@ const agree = ref(false);
 
 // Dialog state
 const showDialog = ref(false);
-const qqInfo = ref(null);
-const loadingInfo = ref(false);
-const fetchError = ref('');
 
 const qqRegex = /^[1-9][0-9]{4,10}$/;
 
@@ -24,25 +21,14 @@ const errorMessage = computed(() => {
   return '';
 });
 
-async function onConfirm() {
+function getQQAvatarUrl(qqNumber: string | number): string {
+  return `http://q.qlogo.cn/headimg_dl?dst_uin=${qqNumber}&spec=640&img_type=jpg`;
+}
+
+function onConfirm() {
   touched.value = true;
   if (!isValid.value) return;
-
-  // Fetch QQ info and show dialog
-  loadingInfo.value = true;
-  fetchError.value = '';
-  qqInfo.value = null;
   showDialog.value = true;
-
-  try {
-    const res = await fetch(`https://uapis.cn/api/v1/social/qq/userinfo?qq=${qq.value}`);
-    const data = await res.json();
-    qqInfo.value = data;
-  } catch (e) {
-    fetchError.value = '获取 QQ 信息失败，请检查网络后重试';
-  } finally {
-    loadingInfo.value = false;
-  }
 }
 
 function onDialogConfirm() {
@@ -60,7 +46,6 @@ function onDialogConfirm() {
 
 function onDialogCancel() {
   showDialog.value = false;
-  qqInfo.value = null;
 }
 
 function onCancel() {
@@ -76,28 +61,19 @@ function formatRegTime(iso) {
 <template>
   <div class="bind-wrapper" role="dialog" aria-modal="true" aria-label="输入 QQ 绑定">
     <div class="content">
-      <img src="../../public/icon.png" alt="Sakiko-ChuniBot" class="icon"/>
+      <img src="/icon.png" alt="Sakiko-ChuniBot" class="icon" />
       <h2>绑定 QQ 账号</h2>
 
       <label class="input-wrap" for="qq-input">
-        <input
-            id="qq-input"
-            v-model="qq"
-            type="text"
-            inputmode="numeric"
-            placeholder="请输入 QQ 号（例 123456）"
-            @blur="touched = true"
-            @keyup.enter="onConfirm"
-            aria-invalid="!isValid"
-            autocomplete="off"
-        />
+        <input id="qq-input" v-model="qq" type="text" inputmode="numeric" placeholder="请输入 QQ 号（例 123456）"
+          @blur="touched = true" @keyup.enter="onConfirm" aria-invalid="!isValid" autocomplete="off" />
       </label>
 
       <p class="error" v-if="errorMessage">{{ errorMessage }}</p>
 
       <div class="agree-wrap">
         <label class="agree-label">
-          <input type="checkbox" v-model="agree"/>
+          <input type="checkbox" v-model="agree" />
           我已阅读并同意
           <a href="/term/terms.html" target="_blank" rel="noopener noreferrer">用户数据授权条款</a>
         </label>
@@ -117,7 +93,7 @@ function formatRegTime(iso) {
         <div class="flow-steps">
           <div class="step step-origin">
             <div class="step-icon">
-              <img src="../../public/icon.png" alt="Sakiko-ChuniBot" class="site-logo" />
+              <img src="/icon.png" alt="Sakiko-ChuniBot" class="site-logo" />
             </div>
             <span class="step-name">本站</span>
           </div>
@@ -137,7 +113,7 @@ function formatRegTime(iso) {
 
           <div class="step step-ext">
             <div class="step-icon step-icon-ext">
-              <img src="../../public/lxns.webp" alt="LXNS" class="site-logo" />
+              <img src="/lxns.webp" alt="LXNS" class="site-logo" />
             </div>
             <span class="step-name">落雪查分器</span>
             <span class="step-sub">maimai.lxns.net</span>
@@ -161,14 +137,14 @@ function formatRegTime(iso) {
               <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" class="done-badge">
                 <defs>
                   <radialGradient id="doneGrad" cx="50%" cy="30%" r="70%">
-                    <stop offset="0%" stop-color="#5be884"/>
-                    <stop offset="100%" stop-color="#2fb564"/>
+                    <stop offset="0%" stop-color="#5be884" />
+                    <stop offset="100%" stop-color="#2fb564" />
                   </radialGradient>
                 </defs>
-                <circle cx="18" cy="18" r="15" fill="url(#doneGrad)" opacity="0.2"/>
-                <circle cx="18" cy="18" r="12" fill="url(#doneGrad)"/>
-                <path d="M11 19 L16 24 L25 14" stroke="#fff" stroke-width="2.8"
-                      stroke-linecap="round" stroke-linejoin="round" class="checkmark-path"/>
+                <circle cx="18" cy="18" r="15" fill="url(#doneGrad)" opacity="0.2" />
+                <circle cx="18" cy="18" r="12" fill="url(#doneGrad)" />
+                <path d="M11 19 L16 24 L25 14" stroke="#fff" stroke-width="2.8" stroke-linecap="round"
+                  stroke-linejoin="round" class="checkmark-path" />
               </svg>
             </div>
             <span class="step-name">绑定成功</span>
@@ -177,18 +153,18 @@ function formatRegTime(iso) {
 
         <div class="hint-important">
           <svg class="note-icon-warn" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M8 1.5L14.5 13H1.5L8 1.5Z" stroke="#f5c542" stroke-width="1.4" stroke-linejoin="round"/>
-            <path d="M8 6v3.5" stroke="#f5c542" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="8" cy="11.2" r="0.75" fill="#f5c542"/>
+            <path d="M8 1.5L14.5 13H1.5L8 1.5Z" stroke="#f5c542" stroke-width="1.4" stroke-linejoin="round" />
+            <path d="M8 6v3.5" stroke="#f5c542" stroke-width="1.5" stroke-linecap="round" />
+            <circle cx="8" cy="11.2" r="0.75" fill="#f5c542" />
           </svg>
           <span>点击「确认」后将跳转至落雪查分器进行授权，<strong>必须完成授权并自动跳转回本页</strong>才算绑定成功</span>
         </div>
 
         <p class="hint-note">
           <svg class="note-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="8" cy="8" r="7" stroke="#43d17a" stroke-width="1.4" opacity="0.7"/>
-            <path d="M8 7v4" stroke="#43d17a" stroke-width="1.5" stroke-linecap="round"/>
-            <circle cx="8" cy="5" r="0.8" fill="#43d17a"/>
+            <circle cx="8" cy="8" r="7" stroke="#43d17a" stroke-width="1.4" opacity="0.7" />
+            <path d="M8 7v4" stroke="#43d17a" stroke-width="1.5" stroke-linecap="round" />
+            <circle cx="8" cy="5" r="0.8" fill="#43d17a" />
           </svg>
           若未自动跳转回本站，请重新打开本页面再次尝试绑定
         </p>
@@ -203,85 +179,41 @@ function formatRegTime(iso) {
         <Transition name="dialog-pop">
           <div class="dialog-box" role="dialog" aria-modal="true" aria-label="确认 QQ 身份">
 
-            <!-- Loading state -->
-            <div v-if="loadingInfo" class="dialog-loading">
-              <div class="spinner"></div>
-              <span>正在获取 QQ 信息…</span>
+            <div class="dialog-header">
+              <span class="dialog-title">确认 QQ 身份</span>
             </div>
 
-            <!-- Error state -->
-            <div v-else-if="fetchError" class="dialog-error-state">
-              <svg viewBox="0 0 24 24" fill="none" class="err-icon">
-                <circle cx="12" cy="12" r="10" stroke="#ff9b9b" stroke-width="1.5"/>
-                <path d="M12 7v5" stroke="#ff9b9b" stroke-width="2" stroke-linecap="round"/>
-                <circle cx="12" cy="16" r="1" fill="#ff9b9b"/>
-              </svg>
-              <p class="err-text">{{ fetchError }}</p>
-              <button class="btn btn-cancel dialog-close-btn" @click="onDialogCancel">关闭</button>
-            </div>
-
-            <!-- Info state -->
-            <template v-else-if="qqInfo">
-              <div class="dialog-header">
-                <span class="dialog-title">确认 QQ 身份</span>
-              </div>
-
-              <!-- QQ profile card -->
-              <div class="qq-card">
-                <img :src="qqInfo.avatar_url" :alt="qqInfo.nickname" class="qq-avatar" referrerpolicy="no-referrer"/>
-                <div class="qq-main">
-                  <div class="qq-name-row">
-                    <span class="qq-nickname">{{ qqInfo.nickname }}</span>
-                    <span v-if="qqInfo.qid" class="qq-qid">{{ qqInfo.qid }}</span>
-                  </div>
-                  <div class="qq-meta-row">
-                    <span class="qq-number">QQ: {{ qqInfo.qq }}</span>
-                    <span v-if="qqInfo.location" class="qq-location">
-                      <svg viewBox="0 0 12 12" fill="none" class="loc-icon">
-                        <path d="M6 1a3.5 3.5 0 0 1 3.5 3.5C9.5 7 6 11 6 11S2.5 7 2.5 4.5A3.5 3.5 0 0 1 6 1z" stroke="currentColor" stroke-width="1.1"/>
-                        <circle cx="6" cy="4.5" r="1.2" stroke="currentColor" stroke-width="1"/>
-                      </svg>
-                      {{ qqInfo.location }}
-                    </span>
-                  </div>
-                  <div v-if="qqInfo.long_nick" class="qq-sign">{{ qqInfo.long_nick }}</div>
+            <div class="qq-card">
+              <img :src="getQQAvatarUrl(qq)" :alt="`QQ ${qq} 头像`" class="qq-avatar" referrerpolicy="no-referrer" />
+              <div class="qq-main">
+                <div class="qq-name-row">
+                  <span class="qq-number">QQ: {{ qq }}</span>
                 </div>
               </div>
+            </div>
 
-              <!-- Extra info pills -->
-              <div class="info-pills">
-                <span class="pill" v-if="qqInfo.sex && qqInfo.sex !== 'unknown'">
-                  {{ qqInfo.sex === 'female' ? '♀ 女' : '♂ 男' }}
-                </span>
-                <span class="pill" v-if="qqInfo.age">{{ qqInfo.age }} 岁</span>
-                <span class="pill" v-if="qqInfo.qq_level">Lv.{{ qqInfo.qq_level }}</span>
-              </div>
+            <div class="dialog-question">
+              <svg viewBox="0 0 16 16" fill="none" class="q-icon">
+                <circle cx="8" cy="8" r="7" stroke="#43d17a" stroke-width="1.3" opacity="0.8" />
+                <path d="M8 7v4" stroke="#43d17a" stroke-width="1.6" stroke-linecap="round" />
+                <circle cx="8" cy="5" r="0.8" fill="#43d17a" />
+              </svg>
+              以上是否为您本人的 QQ 账号？
+            </div>
 
-              <!-- Confirm question -->
-              <div class="dialog-question">
-                <svg viewBox="0 0 16 16" fill="none" class="q-icon">
-                  <circle cx="8" cy="8" r="7" stroke="#43d17a" stroke-width="1.3" opacity="0.8"/>
-                  <path d="M8 7v4" stroke="#43d17a" stroke-width="1.6" stroke-linecap="round"/>
-                  <circle cx="8" cy="5" r="0.8" fill="#43d17a"/>
-                </svg>
-                以上是否为您本人的 QQ 账号？
-              </div>
+            <div class="dialog-warn">
+              <svg viewBox="0 0 16 16" fill="none" class="warn-icon">
+                <path d="M8 1.5L14.5 13H1.5L8 1.5Z" stroke="#f5c542" stroke-width="1.4" stroke-linejoin="round" />
+                <path d="M8 6v3.5" stroke="#f5c542" stroke-width="1.5" stroke-linecap="round" />
+                <circle cx="8" cy="11.2" r="0.75" fill="#f5c542" />
+              </svg>
+              <span>若发现<strong>恶意绑定他人账号</strong>，将会<strong>永久禁止</strong>使用本 Bot 的全部功能</span>
+            </div>
 
-              <!-- Warning -->
-              <div class="dialog-warn">
-                <svg viewBox="0 0 16 16" fill="none" class="warn-icon">
-                  <path d="M8 1.5L14.5 13H1.5L8 1.5Z" stroke="#f5c542" stroke-width="1.4" stroke-linejoin="round"/>
-                  <path d="M8 6v3.5" stroke="#f5c542" stroke-width="1.5" stroke-linecap="round"/>
-                  <circle cx="8" cy="11.2" r="0.75" fill="#f5c542"/>
-                </svg>
-                <span>若发现<strong>恶意绑定他人账号</strong>，将会<strong>永久禁止</strong>使用本 Bot 的全部功能</span>
-              </div>
-
-              <div class="dialog-btn-row">
-                <button class="btn btn-confirm" @click="onDialogConfirm">是，继续绑定</button>
-                <button class="btn btn-cancel" @click="onDialogCancel">不是，重新输入</button>
-              </div>
-            </template>
+            <div class="dialog-btn-row">
+              <button class="btn btn-confirm" @click="onDialogConfirm">是，继续绑定</button>
+              <button class="btn btn-cancel" @click="onDialogCancel">不是，重新输入</button>
+            </div>
 
           </div>
         </Transition>
@@ -494,7 +426,9 @@ function formatRegTime(iso) {
 }
 
 @keyframes drawCheck {
-  to { stroke-dashoffset: 0; }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
 .step-name {
@@ -553,16 +487,40 @@ function formatRegTime(iso) {
   animation: dotFlow 1.4s ease-in-out infinite;
 }
 
-.dot:nth-child(1) { animation-delay: 0s; }
-.dot:nth-child(2) { animation-delay: 0.25s; }
-.dot:nth-child(3) { animation-delay: 0.5s; }
-.dot:nth-child(4) { animation-delay: 0.75s; }
+.dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.25s;
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.5s;
+}
+
+.dot:nth-child(4) {
+  animation-delay: 0.75s;
+}
 
 @keyframes dotFlow {
-  0%   { opacity: 0;   transform: translateX(-8px); }
-  25%  { opacity: 1; }
-  75%  { opacity: 1; }
-  100% { opacity: 0;   transform: translateX(8px); }
+  0% {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+
+  25% {
+    opacity: 1;
+  }
+
+  75% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(8px);
+  }
 }
 
 .arrow-head {
@@ -573,8 +531,17 @@ function formatRegTime(iso) {
 }
 
 @keyframes arrowPulse {
-  0%, 100% { opacity: 0.5; transform: translateX(0); }
-  50%       { opacity: 1;   transform: translateX(2px); }
+
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: translateX(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateX(2px);
+  }
 }
 
 .hint-important {
@@ -657,7 +624,7 @@ function formatRegTime(iso) {
   align-items: center;
   gap: 16px;
   padding: 24px 0;
-  color: rgba(255,255,255,0.55);
+  color: rgba(255, 255, 255, 0.55);
   font-size: 14px;
 }
 
@@ -671,7 +638,9 @@ function formatRegTime(iso) {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Error ── */
@@ -769,13 +738,13 @@ function formatRegTime(iso) {
 
 .qq-number {
   font-size: 12px;
-  color: rgba(255,255,255,0.45);
+  color: rgba(255, 255, 255, 0.45);
   font-family: monospace;
 }
 
 .qq-location {
   font-size: 11px;
-  color: rgba(255,255,255,0.38);
+  color: rgba(255, 255, 255, 0.38);
   display: flex;
   align-items: center;
   gap: 3px;
@@ -784,12 +753,12 @@ function formatRegTime(iso) {
 .loc-icon {
   width: 10px;
   height: 10px;
-  color: rgba(255,255,255,0.3);
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .qq-sign {
   font-size: 12px;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255, 255, 255, 0.35);
   font-style: italic;
   white-space: nowrap;
   overflow: hidden;
@@ -809,9 +778,9 @@ function formatRegTime(iso) {
   font-size: 11px;
   padding: 2px 9px;
   border-radius: 20px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
-  color: rgba(255,255,255,0.5);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 
@@ -821,7 +790,7 @@ function formatRegTime(iso) {
   align-items: center;
   gap: 7px;
   font-size: 14px;
-  color: rgba(255,255,255,0.82);
+  color: rgba(255, 255, 255, 0.82);
   margin-bottom: 12px;
 }
 
@@ -873,6 +842,7 @@ function formatRegTime(iso) {
 .overlay-fade-leave-active {
   transition: opacity 0.22s ease;
 }
+
 .overlay-fade-enter-from,
 .overlay-fade-leave-to {
   opacity: 0;
@@ -881,13 +851,16 @@ function formatRegTime(iso) {
 .dialog-pop-enter-active {
   transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
 .dialog-pop-leave-active {
   transition: opacity 0.18s ease, transform 0.18s ease;
 }
+
 .dialog-pop-enter-from {
   opacity: 0;
   transform: scale(0.88) translateY(10px);
 }
+
 .dialog-pop-leave-to {
   opacity: 0;
   transform: scale(0.94) translateY(4px);
